@@ -111,4 +111,8 @@ const ProfileTable = () => {
   );
 };
 
+<<<<<<< HEAD
 export default ProfileTable;
+=======
+export default ProfileTable;
+>>>>>>> bf4013f46c9a1efcf6bc17f0236e4937a8e47a6c
