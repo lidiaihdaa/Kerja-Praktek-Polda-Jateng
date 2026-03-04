@@ -30,12 +30,18 @@ const DashboardPage = () => {
           },
         });
 
+        if (!response.ok) {
+          throw new Error("Gagal mengambil profile");
+        }
+
         const result = await response.json();
 
-        if (response.ok && result.data) {
+        if (response.ok && result.status === "success") {
           setStatusSaatIni(result.data.status);
           setDetail(result.data);
           setIsRegistered(true);
+        } else if (result.status === "empty") {
+          setIsRegistered(false);
         } else {
           setIsRegistered(false);
         }

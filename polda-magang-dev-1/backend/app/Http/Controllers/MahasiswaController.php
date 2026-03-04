@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Divisi;
 
 class MahasiswaController extends Controller
 {
@@ -58,68 +59,85 @@ class MahasiswaController extends Controller
 }
     // Fungsi baru untuk menangani Pendaftaran
     public function registerPeserta(Request $request)
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        // Validasi data dasar (sesuaikan dengan nama field di React)
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string',
-            'email' => 'required|email',
-            'nim' => 'required|string',
-            'universitas' => 'required|string',
-            'jurusan' => 'required|string',
-            'tgl_mulai' => 'required|date',
-            'tgl_selesai' => 'required|date',
-            // ... (tambahkan validasi lain jika perlu)
-        ]);
+    $validator = Validator::make($request->all(), [
+        'nama' => 'required|string',
+        'email' => 'required|email',
+        'nim' => 'required|string',
+        'universitas' => 'required|string',
+        'jurusan' => 'required|string',
+        'tgl_mulai' => 'required|date',
+        'tgl_selesai' => 'required|date',
+        'divisi' => 'required|string'
+    ]);
 
-        if ($validator->fails()) {
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 400);
+    }
+
+    try {
+
+        // 🔎 cari divisi
+        $divisi = Divisi::where('nama_divisi', $request->divisi)->first();
+
+        if (!$divisi) {
             return response()->json([
-                'success' => false, 
-                'message' => 'Validasi gagal, periksa kembali data Anda.', 
-                'errors' => $validator->errors()
+                'success' => false,
+                'message' => 'Divisi tidak ditemukan'
+            ], 404);
+        }
+
+        // 🔎 cek kuota
+        if ($divisi->sisa_kuota <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kuota divisi sudah penuh'
             ], 400);
         }
 
-        try {
-            // Gunakan updateOrCreate agar data tidak ganda jika user mencoba daftar ulang
-            $mahasiswa = Mahasiswa::updateOrCreate(
-                ['user_id' => $user->id], // Cari berdasarkan user_id yang sedang login
-                [
-                    'nama' => $request->nama,
-                    'email' => $request->email,
-                    'nim' => $request->nim,
-                    'universitas' => $request->universitas,
-                    'fakultas' => $request->fakultas,
-                    'jurusan' => $request->jurusan,
-                    'tempat_lahir' => $request->tempat_lahir,
-                    'tanggal_lahir' => $request->tanggal_lahir,
-                    'no_hp' => $request->no_hp,
-                    'instagram' => $request->instagram,
-                    'divisi' => $request->divisi,
-                    'rekomendasi' => $request->rekomendasi,
-                    'tgl_mulai' => $request->tgl_mulai,
-                    'tgl_selesai' => $request->tgl_selesai,
-                    'status' => 'pending', // Status awal untuk memunculkan "Menunggu Verifikasi"
-                    
-                    // Nanti kita bahas cara simpan fotonya di sini jika dikirim dari React
-                    // 'foto' => json_encode($request->images) 
-                ]
-            );
+        // simpan data mahasiswa
+        $mahasiswa = Mahasiswa::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'nim' => $request->nim,
+                'universitas' => $request->universitas,
+                'fakultas' => $request->fakultas,
+                'jurusan' => $request->jurusan,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'no_hp' => $request->no_hp,
+                'instagram' => $request->instagram,
+                'divisi' => $request->divisi,
+                'rekomendasi' => $request->rekomendasi,
+                'tgl_mulai' => $request->tgl_mulai,
+                'tgl_selesai' => $request->tgl_selesai,
+                'status' => 'pending'
+            ]
+        );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Pendaftaran berhasil disimpan!',
-                'data' => $mahasiswa
-            ]);
+        // 🔥 kurangi kuota divisi
+        $divisi->decrement('sisa_kuota');
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan server: ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Pendaftaran berhasil',
+            'data' => $mahasiswa
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     public function uploadBerkas(Request $request)
     {
@@ -148,7 +166,10 @@ class MahasiswaController extends Controller
     if ($mahasiswa) {
         return response()->json(['status' => 'success', 'data' => $mahasiswa]);
     }
-    return response()->json(['status' => 'empty', 'data' => null], 404);
+    return response()->json([
+    'status' => 'empty',
+    'data' => null
+], 200);
 }
     public function downloadFile($folder, $filename)
     {

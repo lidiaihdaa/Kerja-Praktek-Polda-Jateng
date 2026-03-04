@@ -1,26 +1,51 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import "./App.css";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
+
 import UserRoutes from "./routes/UserRoutes";
 import AuthRoutes from "./routes/AuthRoutes";
 import AdminRoutes from "./routes/AdminRoutes";
 import DashboardUserRoutes from "./routes/DashboardUserRoutes";
-import { Navigate } from "react-router-dom";
 
 function App() {
-  return (
-      <>
-      {}
-        <Routes>
-          <Route path="/*" element={<UserRoutes />} />
-          <Route path="/" element={<Navigate to="/auth/login" />} />
-          <Route path="/auth/*" element={<AuthRoutes />} />
-          <Route path="/admin/*" element={<AdminRoutes />} />
-          <Route path="/user/*" element={<DashboardUserRoutes />} />
-        </Routes>
+  const token = localStorage.getItem("auth_token");
+  const role = localStorage.getItem("role");
 
-        <Toaster position="top-right" />
-      </>
+  return (
+    <>
+      <Routes>
+        {/* Jika belum login → ke login */}
+        <Route
+          path="/"
+          element={
+            token
+              ? role === "admin"
+                ? <Navigate to="/admin/dashboard" />
+                : <Navigate to="/user/dashboard" />
+              : <Navigate to="/auth/login" />
+          }
+        />
+
+        {/* Auth */}
+        <Route path="/auth/*" element={<AuthRoutes />} />
+
+        {/* Admin */}
+        <Route
+          path="/admin/*"
+          element={token && role === "admin" ? <AdminRoutes /> : <Navigate to="/auth/login" />}
+        />
+
+        {/* User */}
+        <Route
+          path="/user/*"
+          element={token ? <DashboardUserRoutes /> : <Navigate to="/auth/login" />}
+        />
+
+        {/* Public */}
+        <Route path="/*" element={<UserRoutes />} />
+      </Routes>
+
+      <Toaster position="top-right" />
+    </>
   );
 }
 
