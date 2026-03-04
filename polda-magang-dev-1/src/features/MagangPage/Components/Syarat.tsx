@@ -7,7 +7,7 @@ const Syarat = () => {
   return (
     <section className="py-20 bg-white">
       <div className="px-6 mx-auto text-center max-w-7xl">
-        {/* Title */}
+        {}
         <h2 className="text-3xl font-bold mb-14 md:text-4xl">
           Persyaratan Magang
         </h2>

@@ -4,6 +4,7 @@ import MainLayout from "../components/layout/MainLayout";
 import Aboutpage from "../features/AboutPage/Aboutpage";
 import Magang from "@/pages/Magang/Magang";
 import Proyek from "@/pages/Proyek/Proyek";
+import DetailProyek from "../pages/Proyek/DetailProyek";
 
 export const NotFoundPage = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const UserRoutes = () => {
         <Route path="/about" element={<Aboutpage />} />
         <Route path="/magang" element={<Magang />} />
         <Route path="/proyek" element={<Proyek />} />
+        <Route path="/proyek/:id" element={<DetailProyek />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

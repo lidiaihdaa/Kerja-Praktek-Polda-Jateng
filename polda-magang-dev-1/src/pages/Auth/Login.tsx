@@ -4,10 +4,12 @@ import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true); 
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/login', {
@@ -20,19 +22,34 @@ const Login = () => {
       });
 
       const result = await response.json();
+      
 
       if (response.ok && result.status === 'success') {
-        localStorage.setItem('token', result.access_token);
+        // 1. UBAH NAMANYA JADI 'auth_token' AGAR SINKRON DENGAN DASHBOARD
+        localStorage.setItem('auth_token', result.access_token);
+        
+        const userRole = result.user.role; 
+        localStorage.setItem('role', userRole);
         
         alert("Login Berhasil! Selamat datang, " + result.user.name);
-      
-        navigate('/dashboard'); 
+
+        if (userRole === 'admin') {
+          navigate('/admin/dashboard'); 
+        } else if (userRole === 'user') {
+          // 2. ARAHKAN KE DASHBOARD (Biar sistem pintar di Dashboard yang bekerja)
+          navigate('/user/dashboard'); 
+        } else {
+          navigate('/dashboard'); 
+        }
+        
       } else {
-        alert("Login Gagal: " + result.message);
+        alert("Login Gagal: " + (result.message || "Email atau password salah."));
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Gagal terhubung ke server Laravel.");
+      alert("Gagal terhubung ke server Laravel. Pastikan server menyala.");
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -43,7 +60,6 @@ const Login = () => {
           LOGIN
         </h2>
 
-        {}
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
             <label className="block mb-1 text-sm text-gray-600">Email</label>
@@ -53,6 +69,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-biru/40"
+              disabled={isLoading} 
             />
           </div>
 
@@ -64,14 +81,18 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-biru/40"
+              disabled={isLoading} 
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 mt-2 text-white transition rounded-md bg-[#7a6f6a] hover:opacity-90"
+            disabled={isLoading} 
+            className={`w-full py-2 mt-2 text-white transition rounded-md ${
+              isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#7a6f6a] hover:opacity-90'
+            }`}
           >
-            Login
+            {isLoading ? 'Sedang Login...' : 'Login'} 
           </button>
         </form>
 
