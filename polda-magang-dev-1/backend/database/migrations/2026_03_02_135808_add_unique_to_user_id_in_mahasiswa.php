@@ -6,11 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::table('mahasiswa', function (Blueprint $table) {
-    $table->unique('user_id');
-});
+            if (!Schema::hasIndex('mahasiswa', 'mahasiswa_user_id_unique')) {
+                $table->unique('user_id');
+            }
+        });
     }
 
     public function down(): void

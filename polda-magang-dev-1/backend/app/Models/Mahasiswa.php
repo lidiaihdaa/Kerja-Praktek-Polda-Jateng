@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Models\User;
+use App\Models\Kelompok;
 
 class Mahasiswa extends Model
 {
@@ -53,6 +54,16 @@ class Mahasiswa extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function kelompok()
+    {
+        return $this->belongsToMany(
+            Kelompok::class,
+            'kelompok_mahasiswa',
+            'mahasiswa_id',
+            'kelompok_id'
+        );
     }
 
     /*

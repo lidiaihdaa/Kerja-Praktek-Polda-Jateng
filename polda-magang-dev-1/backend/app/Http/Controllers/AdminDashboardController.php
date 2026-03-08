@@ -24,22 +24,10 @@ class AdminDashboardController extends Controller
 
     // cards
     $cards = [
-        [
-            "title" => "Pendaftar Baru",
-            "value" => (clone $query)->where("status","pending")->count()
-        ],
-        [
-            "title" => "Pemagang Aktif",
-            "value" => (clone $query)->where("status","diterima")->count()
-        ],
-        [
-            "title" => "Total Instansi Mitra",
-            "value" => (clone $query)->distinct("universitas")->count("universitas")
-        ],
-        [
-            "title" => "Rata - Rata Nilai Alumni",
-            "value" => round((clone $query)->avg("nilai") ?? 0,1)
-        ]
+        'pendaftar' => (clone $query)->where('status', 'pending')->count(),
+        'aktif'     => (clone $query)->where('status', 'diterima')->count(),
+        'instansi'  => (clone $query)->distinct('universitas')->count('universitas'),
+        'nilai'     => round((clone $query)->avg('nilai') ?? 0, 1),
     ];
 
     // grafik pendaftaran per bulan

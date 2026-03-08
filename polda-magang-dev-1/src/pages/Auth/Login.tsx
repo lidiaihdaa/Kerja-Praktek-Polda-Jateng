@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true); 
+    setIsLoading(true);
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/login', {
@@ -22,26 +21,21 @@ const Login = () => {
       });
 
       const result = await response.json();
-      
 
       if (response.ok && result.status === 'success') {
-        // 1. UBAH NAMANYA JADI 'auth_token' AGAR SINKRON DENGAN DASHBOARD
         localStorage.setItem('auth_token', result.access_token);
-        
-        const userRole = result.user.role; 
-        localStorage.setItem('role', userRole);
-        
+        localStorage.setItem('role', result.user.role);
+
         alert("Login Berhasil! Selamat datang, " + result.user.name);
 
-        if (userRole === 'admin') {
-          navigate('/admin/dashboard'); 
-        } else if (userRole === 'user') {
-          // 2. ARAHKAN KE DASHBOARD (Biar sistem pintar di Dashboard yang bekerja)
-          navigate('/user/dashboard'); 
+        if (result.user.role === 'admin') {
+          window.location.href = '/admin/dashboard';
+        } else if (result.user.role === 'user') {
+          window.location.href = '/user/dashboard';
         } else {
-          navigate('/dashboard'); 
+          window.location.href = '/dashboard';
         }
-        
+
       } else {
         alert("Login Gagal: " + (result.message || "Email atau password salah."));
       }
@@ -49,7 +43,7 @@ const Login = () => {
       console.error("Login error:", error);
       alert("Gagal terhubung ke server Laravel. Pastikan server menyala.");
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -69,7 +63,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-biru/40"
-              disabled={isLoading} 
+              disabled={isLoading}
             />
           </div>
 
@@ -81,18 +75,18 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-biru/40"
-              disabled={isLoading} 
+              disabled={isLoading}
             />
           </div>
 
           <button
             type="submit"
-            disabled={isLoading} 
+            disabled={isLoading}
             className={`w-full py-2 mt-2 text-white transition rounded-md ${
               isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#7a6f6a] hover:opacity-90'
             }`}
           >
-            {isLoading ? 'Sedang Login...' : 'Login'} 
+            {isLoading ? 'Sedang Login...' : 'Login'}
           </button>
         </form>
 

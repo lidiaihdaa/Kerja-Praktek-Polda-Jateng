@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminPendaftarController;
 use App\Http\Controllers\AdminMahasiswaController;
 use App\Http\Controllers\AdminPenilaianController;
+use App\Http\Controllers\AdminKelompokController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AdminLaporanController;
 use App\Http\Controllers\KuotaController;
@@ -63,15 +64,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN ROUTES (Login + Middleware Apadmin)
+    | ADMIN ROUTES (Login + Middleware Admin)
     |--------------------------------------------------------------------------
     */
     Route::middleware(['auth:sanctum','admin'])->group(function () {
-
-    Route::put('/admin/mahasiswa/{id}/approve', [AdminMahasiswaController::class, 'approve']);
-    Route::put('/admin/mahasiswa/{id}/reject', [AdminMahasiswaController::class, 'reject']);
-
-});
+        Route::put('/admin/mahasiswa/{id}/approve', [AdminMahasiswaController::class, 'approve']);
+        Route::put('/admin/mahasiswa/{id}/reject', [AdminMahasiswaController::class, 'reject']);
+    });
 
     Route::middleware('admin')->prefix('admin')->group(function () {
 
@@ -89,23 +88,51 @@ Route::middleware('auth:sanctum')->group(function () {
         */
         Route::get('/pendaftar', [AdminPendaftarController::class, 'index']);
         Route::put('/pendaftar/{id}/status', [AdminPendaftarController::class, 'updateStatus']);
+        Route::put('/pendaftar/{id}/approve', [AdminPendaftarController::class, 'approve']);
+        Route::put('/pendaftar/{id}/reject', [AdminPendaftarController::class, 'reject']);
+        Route::put('/pendaftar/{id}/konfirmasi-berkas', [AdminPendaftarController::class, 'konfirmasiBerkas']);
+        Route::put('/pendaftar/{id}/terima', [AdminPendaftarController::class, 'terima']);
 
         /*
         |--------------------------------------------------------------------------
         | MAHASISWA
         |--------------------------------------------------------------------------
         */
+        Route::get('/mahasiswa', [AdminMahasiswaController::class, 'index']);
         Route::get('/mahasiswa/{id}', [AdminMahasiswaController::class, 'show']);
         Route::put('/mahasiswa/{id}/approve', [AdminMahasiswaController::class, 'approve']);
         Route::put('/mahasiswa/{id}/reject', [AdminMahasiswaController::class, 'reject']);
+        Route::put('/mahasiswa/{id}/konfirmasi-berkas', [AdminMahasiswaController::class, 'konfirmasiBerkas']);
+        Route::put('/mahasiswa/{id}/terima', [AdminMahasiswaController::class, 'terima']);
         Route::get('/mahasiswa/{id}/download/{jenis}', [AdminMahasiswaController::class, 'download']);
+        Route::delete('/mahasiswa/{id}', [AdminMahasiswaController::class, 'destroy']);
+        Route::put('/mahasiswa/{id}', [AdminMahasiswaController::class, 'update']);
 
         /*
         |--------------------------------------------------------------------------
         | PENILAIAN
         |--------------------------------------------------------------------------
         */
+        Route::get('/penilaian', [AdminPenilaianController::class, 'index']);     
+        Route::get('/penilaian/{id}', [AdminPenilaianController::class, 'show']); 
         Route::put('/penilaian/{id}', [AdminPenilaianController::class, 'update']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | KELOMPOK
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/kelompok', [AdminKelompokController::class, 'index']);
+        Route::post('/kelompok', [AdminKelompokController::class, 'store']);
+        Route::put('/kelompok/{id}', [AdminKelompokController::class, 'update']);
+        Route::delete('/kelompok/{id}', [AdminKelompokController::class, 'destroy']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DIVISI
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/divisi', [KuotaController::class, 'adminIndex']);
 
         /*
         |--------------------------------------------------------------------------
@@ -120,5 +147,6 @@ Route::middleware('auth:sanctum')->group(function () {
         |--------------------------------------------------------------------------
         */
         Route::get('/laporan', [AdminLaporanController::class, 'index']);
+        Route::get('/hasil-magang', [AdminPenilaianController::class, 'hasilMagang']);
     });
 });

@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// Sesuaikan import komponen di bawah ini dengan struktur foldermu
 import HeaderDashboard from "./Component/HeaderDashboard";
 import Timeline from "./Component/Timeline";
 import { Loader2, FileText } from "lucide-react";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  // State untuk melacak apakah user sudah isi form atau belum
   const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
   const [statusSaatIni, setStatusSaatIni] = useState<any>(null);
   const [detail, setDetail] = useState<any>(null);
@@ -16,8 +14,6 @@ const DashboardPage = () => {
     const fetchProfileData = async () => {
       try {
         const token = localStorage.getItem("auth_token");
-
-        // PERBAIKAN: Jika tidak ada token, langsung arahkan ke Login, jangan dibiarkan gantung
         if (!token) {
           navigate("/auth/login");
           return;
@@ -30,13 +26,11 @@ const DashboardPage = () => {
           },
         });
 
-        if (!response.ok) {
-          throw new Error("Gagal mengambil profile");
-        }
+        if (!response.ok) throw new Error("Gagal mengambil profile");
 
         const result = await response.json();
 
-        if (response.ok && result.status === "success") {
+        if (result.status === "success") {
           setStatusSaatIni(result.data.status);
           setDetail(result.data);
           setIsRegistered(true);
@@ -47,15 +41,18 @@ const DashboardPage = () => {
         }
       } catch (error) {
         console.error("Gagal mengambil data", error);
-        // PERBAIKAN: Jika server mati/error, matikan loading dan anggap belum daftar
-        setIsRegistered(false);
+        setIsRegistered((prev) => prev === null ? false : prev);
       }
     };
 
     fetchProfileData();
-  }, [navigate]); // Tambahkan navigate di sini agar React tidak protes
 
-  // 1. TAMPILAN SAAT LOADING
+    // Auto-refresh setiap 5 detik — tidak perlu login ulang
+    const interval = setInterval(fetchProfileData, 5000);
+    return () => clearInterval(interval);
+
+  }, [navigate]);
+
   if (isRegistered === null) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
@@ -65,7 +62,6 @@ const DashboardPage = () => {
     );
   }
 
-  // 2. TAMPILAN UNTUK AKUN BARU (BELUM DAFTAR)
   if (isRegistered === false) {
     return (
       <div className="p-6">

@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight, MoreVertical, CheckSquare, Trash2 } from "lucide-react";
+import { ArrowRight, MoreVertical, CheckSquare, Trash2, X } from "lucide-react";
 
 interface Mahasiswa {
   id: number;
@@ -41,6 +41,7 @@ interface Mahasiswa {
 const Pendaftar = () => {
   const [data, setData] = useState<Mahasiswa[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -65,6 +66,12 @@ const Pendaftar = () => {
     setLoading(false);
   };
 
+  const filtered = filter
+    ? data.filter((item) =>
+        item.universitas?.toLowerCase().includes(filter.toLowerCase())
+      )
+    : data;
+
   return (
     <div className="p-6 bg-white border rounded-xl">
       <div className="flex items-center justify-between mb-4">
@@ -76,8 +83,22 @@ const Pendaftar = () => {
         </Button>
       </div>
 
-      <div className="mb-4">
-        <Input placeholder="Filter Universitas" className="max-w-sm" />
+      <div className="mb-4 flex items-center gap-2 max-w-sm">
+        <div className="relative w-full">
+          <Input
+            placeholder="Filter Universitas"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          {filter && (
+            <button
+              onClick={() => setFilter("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -96,91 +117,91 @@ const Pendaftar = () => {
           </TableHeader>
 
           <TableBody>
-            {data.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <MoreVertical
-                    size={16}
-                    className="cursor-pointer text-muted-foreground"
-                  />
-                </TableCell>
-
-                <TableCell>{item.user?.name}</TableCell>
-                <TableCell>{item.universitas}</TableCell>
-                <TableCell>{item.jurusan}</TableCell>
-
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full font-semibold ${
-                      item.status === "pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : item.status === "diterima"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
-                </TableCell>
-
-                <TableCell className="flex justify-end gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-green-600 border-green-600"
-                      >
-                        <CheckSquare size={14} />
-                      </Button>
-                    </DialogTrigger>
-
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Detail Pendaftar</DialogTitle>
-                      </DialogHeader>
-
-                      <div className="space-y-2 text-sm">
-                        <p>
-                          <b>Nama:</b> {item.user?.name}
-                        </p>
-                        <p>
-                          <b>Email:</b> {item.user?.email}
-                        </p>
-                        <p>
-                          <b>Universitas:</b> {item.universitas}
-                        </p>
-                        <p>
-                          <b>Jurusan:</b> {item.jurusan}
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="destructive">
-                        <Trash2 size={14} />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Tolak pendaftar ini?
-                        </AlertDialogTitle>
-                      </AlertDialogHeader>
-
-                      <div className="flex justify-end gap-2">
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction className="bg-red-600">
-                          Tolak
-                        </AlertDialogAction>
-                      </div>
-                    </AlertDialogContent>
-                  </AlertDialog>
+            {filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-gray-400 py-6">
+                  Tidak ada data untuk universitas "{filter}"
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filtered.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <MoreVertical
+                      size={16}
+                      className="cursor-pointer text-muted-foreground"
+                    />
+                  </TableCell>
+
+                  <TableCell>{item.user?.name}</TableCell>
+                  <TableCell>{item.universitas}</TableCell>
+                  <TableCell>{item.jurusan}</TableCell>
+
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full font-semibold ${
+                        item.status === "pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : item.status === "diterima"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className="flex justify-end gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-green-600 border-green-600"
+                        >
+                          <CheckSquare size={14} />
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Detail Pendaftar</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-2 text-sm">
+                          <p><b>Nama:</b> {item.user?.name}</p>
+                          <p><b>Email:</b> {item.user?.email}</p>
+                          <p><b>Universitas:</b> {item.universitas}</p>
+                          <p><b>Jurusan:</b> {item.jurusan}</p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="destructive">
+                          <Trash2 size={14} />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Tolak pendaftar ini?
+                          </AlertDialogTitle>
+                        </AlertDialogHeader>
+
+                        <div className="flex justify-end gap-2">
+                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                          <AlertDialogAction className="bg-red-600">
+                            Tolak
+                          </AlertDialogAction>
+                        </div>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       )}

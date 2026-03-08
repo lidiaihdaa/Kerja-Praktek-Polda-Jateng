@@ -13,19 +13,10 @@ function App() {
   return (
     <>
       <Routes>
-        {/* Jika belum login → ke login */}
-        <Route
-          path="/"
-          element={
-            token
-              ? role === "admin"
-                ? <Navigate to="/admin/dashboard" />
-                : <Navigate to="/user/dashboard" />
-              : <Navigate to="/auth/login" />
-          }
-        />
+        {/* Public - halaman utama tetap bisa diakses siapapun */}
+        <Route path="/*" element={<UserRoutes />} />
 
-        {/* Auth */}
+        {/* Auth - selalu bisa diakses meskipun sudah login */}
         <Route path="/auth/*" element={<AuthRoutes />} />
 
         {/* Admin */}
@@ -39,9 +30,6 @@ function App() {
           path="/user/*"
           element={token ? <DashboardUserRoutes /> : <Navigate to="/auth/login" />}
         />
-
-        {/* Public */}
-        <Route path="/*" element={<UserRoutes />} />
       </Routes>
 
       <Toaster position="top-right" />

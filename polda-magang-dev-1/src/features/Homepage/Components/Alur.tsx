@@ -28,7 +28,6 @@ const Alur = () => {
         </h2>
 
         <div className="relative">
-          {}
           <div className="hidden md:block absolute left-1/2 top-0 h-full w-[2px] bg-gray-300 -translate-x-1/2" />
 
           <div className="space-y-12">
@@ -60,7 +59,7 @@ const Alur = () => {
 
         <div className="mt-16 text-center">
           <Link
-            to="/auth/daftar"
+            to="/auth/login"
             className="inline-block px-6 py-3 font-medium text-white transition rounded-lg bg-biru hover:bg-gray-800"
           >
             Lanjut Daftar

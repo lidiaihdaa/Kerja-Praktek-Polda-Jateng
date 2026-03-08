@@ -36,6 +36,8 @@ return new class extends Migration
             $table->date('tgl_mulai')->nullable();
             $table->date('tgl_selesai')->nullable();
             $table->string('berkas_cv')->nullable();
+            $table->string('berkas_surat_pengantar')->nullable();
+            $table->string('berkas_proposal')->nullable();
             $table->string('proposal_magang')->nullable();
             $table->string('surat_pengantar')->nullable();
             $table->enum('status', ['pending', 'diterima', 'ditolak'])->default('pending');
