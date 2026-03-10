@@ -2,23 +2,32 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * The event to listener mappings for the application.
      */
-    public function register(): void
+    protected $listen = [
+        \App\Events\MahasiswaStatusUpdated::class => [
+            \App\Listeners\SendStatusNotification::class,
+        ],
+    ];
+
+    /**
+     * Register any events for your application.
+     */
+    public function boot(): void
     {
         //
     }
 
     /**
-     * Bootstrap any application services.
+     * Determine if events and listeners should be automatically discovered.
      */
-    public function boot(): void
+    public function shouldDiscoverEvents(): bool
     {
-        //
+        return false;
     }
 }

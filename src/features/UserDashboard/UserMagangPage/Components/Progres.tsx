@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,131 +10,202 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Save } from "lucide-react";
 
 type ProgresItem = {
   id: number;
-  status: "Pending" | "On Progress" | "Done";
-  tanggal: string;
+  status: "Pending" | "On Progress" | "Done" | string;
+  created_at: string;
   kegiatan: string;
-  dokumentasi?: File | null;
+  dokumentasi: string | null; // Dari server berupa nama file, bukan object File
 };
 
 const Progres = () => {
-  const [data, setData] = useState<ProgresItem[]>([
-    {
-      id: 1,
-      status: "Pending",
-      tanggal: "2026-02-25",
-      kegiatan: "",
-      dokumentasi: null,
-    },
-    {
-      id: 2,
-      status: "On Progress",
-      tanggal: "2026-02-24",
-      kegiatan: "Meeting Project",
-      dokumentasi: null,
-    },
-  ]);
+  const [data, setData] = useState<ProgresItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // State untuk form tambah kegiatan baru
+  const [kegiatanBaru, setKegiatanBaru] = useState("");
+  const [fileBaru, setFileBaru] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-
-  const handleKegiatanChange = (id: number, value: string) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, kegiatan: value } : item,
-      ),
-    );
+  // MENGAMBIL DATA DARI SERVER
+  const fetchProgres = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("auth_token");
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/progres", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      const result = await response.json();
+      console.log("Data dari server:", result);
+      if (response.ok && result.success) {
+        setData(Array.isArray(result.data) ? result.data : []);
+      }
+    } catch (error) {
+      console.error("Gagal menarik data progres", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = (id: number) => {
-    const item = data.find((d) => d.id === id);
-    console.log("SAVE KEGIATAN:", item);
+  useEffect(() => {
+    fetchProgres();
+  }, []);
 
-    // TODO: panggil API di sini
-    setEditingId(null);
+  // MENYIMPAN KEGIATAN BARU
+  const handleSaveBaru = async () => {
+    if (!kegiatanBaru.trim()) {
+      alert("Isi kegiatan tidak boleh kosong!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const token = localStorage.getItem("auth_token");
+    
+    // Karena ada file gambar, Wajib pakai FormData
+    const formData = new FormData();
+    formData.append("kegiatan", kegiatanBaru);
+    if (fileBaru) {
+      formData.append("dokumentasi", fileBaru);
+    }
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/progres/simpan", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        alert("✅ Laporan harian berhasil disimpan!");
+        // Reset form
+        setKegiatanBaru("");
+        setFileBaru(null);
+        // Tarik ulang data agar tabel ter-update
+        fetchProgres(); 
+      } else {
+        alert("❌ Gagal menyimpan: " + (result.message || "Pastikan foto berformat JPG/PNG maksimal 2MB"));
+      }
+    } catch (error) {
+      console.error("Error server:", error);
+      alert("Terjadi kesalahan pada server.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleFileChange = (id: number, file: File | null) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, dokumentasi: file } : item,
-      ),
-    );
-
-    console.log("UPLOAD FILE:", file);
-    // TODO: upload ke API
-  };
-
-  const renderStatus = (status: ProgresItem["status"]) => {
-    if (status === "Done") return <Badge variant={"secondary"}>Done</Badge>;
-    if (status === "On Progress")
-      return <Badge variant="secondary">On Progress</Badge>;
-    return <Badge variant="outline">Pending</Badge>;
+  const renderStatus = (status: string) => {
+    if (status === "Done") return <Badge className="bg-green-500 hover:bg-green-600">Done</Badge>;
+    if (status === "On Progress") return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">On Progress</Badge>;
+    return <Badge variant="outline" className="text-gray-500">Pending</Badge>;
   };
 
   return (
-    <div className="p-6">
-      <h1 className="mb-4 text-xl font-semibold">Progres Kegiatan</h1>
+    <div className="space-y-6">
+      
+      {/* FORM TAMBAH LAPORAN BARU */}
+      <div className="p-4 border border-blue-100 rounded-xl bg-blue-50">
+        <h2 className="flex items-center gap-2 mb-3 text-sm font-bold text-blue-800">
+          <Plus size={16} /> Buat Laporan Harian Baru
+        </h2>
+        <div className="grid gap-3 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <Input 
+              placeholder="Deskripsikan pekerjaan hari ini..." 
+              value={kegiatanBaru}
+              onChange={(e) => setKegiatanBaru(e.target.value)}
+              className="bg-white"
+            />
+          </div>
+          <div className="md:col-span-4">
+            <Input 
+              type="file" 
+              accept="image/png, image/jpeg, image/jpg"
+              onChange={(e) => setFileBaru(e.target.files?.[0] || null)}
+              className="bg-white"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Button 
+              className="w-full gap-2 text-white bg-blue-600 hover:bg-blue-700"
+              onClick={handleSaveBaru}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              Simpan
+            </Button>
+          </div>
+        </div>
+      </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Status</TableHead>
-            <TableHead>Tanggal</TableHead>
-            <TableHead>Kegiatan</TableHead>
-            <TableHead>Dokumentasi</TableHead>
-          </TableRow>
-        </TableHeader>
+      {/* TABEL RIWAYAT LAPORAN */}
+      <div className="overflow-hidden bg-white border shadow-sm rounded-xl">
+        <div className="p-4 border-b bg-gray-50">
+          <h2 className="font-bold text-gray-700">Riwayat Progres Magang</h2>
+        </div>
 
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{renderStatus(item.status)}</TableCell>
+        {loading ? (
+          <div className="flex justify-center p-10">
+            <Loader2 className="w-8 h-8 animate-spin text-abu" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Tanggal</TableHead>
+                <TableHead>Kegiatan</TableHead>
+                <TableHead>Dokumentasi</TableHead>
+                <TableHead className="text-right">Status Verifikasi</TableHead>
+              </TableRow>
+            </TableHeader>
 
-              <TableCell>{item.tanggal}</TableCell>
-
-              {/* KEGIATAN */}
-              <TableCell className="w-[300px]">
-                <div className="flex gap-2">
-                  <Input
-                    value={item.kegiatan}
-                    placeholder="Isi kegiatan..."
-                    onFocus={() => setEditingId(item.id)}
-                    onChange={(e) =>
-                      handleKegiatanChange(item.id, e.target.value)
-                    }
-                  />
-
-                  {editingId === item.id && (
-                    <Button size="sm" onClick={() => handleSave(item.id)}>
-                      Simpan
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-
-              {/* DOKUMENTASI */}
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  <Input
-                    type="file"
-                    onChange={(e) =>
-                      handleFileChange(item.id, e.target.files?.[0] || null)
-                    }
-                  />
-
-                  {item.dokumentasi && (
-                    <span className="text-xs text-muted-foreground">
-                      {item.dokumentasi.name}
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-8 text-center text-gray-400">
+                    Belum ada laporan kegiatan magang yang diisi.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium whitespace-nowrap">
+                      {new Date(item.created_at).toLocaleDateString("id-ID", { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </TableCell>
+                    <TableCell>{item.kegiatan}</TableCell>
+                    <TableCell>
+                      {item.dokumentasi ? (
+                        <a 
+                          href={`http://127.0.0.1:8000/storage/progres/${item.dokumentasi}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-blue-600 underline hover:text-blue-800 text-sm"
+                        >
+                          Lihat Foto
+                        </a>
+                      ) : (
+                        <span className="text-xs italic text-gray-400">Tidak ada foto</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {renderStatus(item.status || "Pending")}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
     </div>
   );
 };

@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('mahasiswa', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')
+      ->unique()
+      ->constrained()
+      ->cascadeOnDelete();
             // Data Diri
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
@@ -33,6 +36,8 @@ return new class extends Migration
             $table->date('tgl_mulai')->nullable();
             $table->date('tgl_selesai')->nullable();
             $table->string('berkas_cv')->nullable();
+            $table->string('berkas_surat_pengantar')->nullable();
+            $table->string('berkas_proposal')->nullable();
             $table->string('proposal_magang')->nullable();
             $table->string('surat_pengantar')->nullable();
             $table->enum('status', ['pending', 'diterima', 'ditolak'])->default('pending');

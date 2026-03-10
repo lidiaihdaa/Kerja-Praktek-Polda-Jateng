@@ -5,15 +5,17 @@ import {
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
 import { Button } from "@/components/ui/button";
+
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
 } from "@/components/ui/pagination";
+
 import {
   Table,
   TableBody,
@@ -22,50 +24,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { Pencil, Trash2, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-type Mahasiswa = {
+export type Mahasiswa = {
   id: number;
   nama: string;
-  instansi: string;
+  universitas: string;
   divisi: string;
   jurusan: string;
+  email?: string;
+  no_hp?: string;
+  nim?: string;
+  status?: string;
 };
 
-const DATA: Mahasiswa[] = [
-  { id: 1, nama: "Budi Santoso", instansi: "Universitas Diponegoro", divisi: "Subbid Tekinfo", jurusan: "Teknik Informatika" },
-  { id: 2, nama: "Siti Aminah", instansi: "Universitas Dian Nuswantoro", divisi: "Humas", jurusan: "Ilmu Komunikasi" },
-  { id: 3, nama: "Ahmad F", instansi: "Universitas X", divisi: "Reskrim", jurusan: "Hukum" },
-  { id: 4, nama: "Dewi C", instansi: "Universitas Negeri Semarang", divisi: "Lantas", jurusan: "Hukum" },
-  { id: 5, nama: "Budi Santoso", instansi: "Universitas Diponegoro", divisi: "Subbid Tekinfo", jurusan: "Teknik Informatika" },
-  { id: 6, nama: "Siti Aminah", instansi: "Universitas Dian Nuswantoro", divisi: "Humas", jurusan: "Ilmu Komunikasi" },
-  { id: 7, nama: "Ahmad F", instansi: "Universitas X", divisi: "Reskrim", jurusan: "Hukum" },
-  { id: 8, nama: "Dewi C", instansi: "Universitas Negeri Semarang", divisi: "Lantas", jurusan: "Hukum" },
-  { id: 9, nama: "Budi Santoso", instansi: "Universitas Diponegoro", divisi: "Subbid Tekinfo", jurusan: "Teknik Informatika" },
-  { id: 10, nama: "Siti Aminah", instansi: "Universitas Dian Nuswantoro", divisi: "Humas", jurusan: "Ilmu Komunikasi" },
-  { id: 11, nama: "Ahmad F", instansi: "Universitas X", divisi: "Reskrim", jurusan: "Hukum" },
-  { id: 12, nama: "Dewi C", instansi: "Universitas Negeri Semarang", divisi: "Lantas", jurusan: "Hukum" },
-  { id: 13, nama: "Budi Santoso", instansi: "Universitas Diponegoro", divisi: "Subbid Tekinfo", jurusan: "Teknik Informatika" },
-  { id: 14, nama: "Siti Aminah", instansi: "Universitas Dian Nuswantoro", divisi: "Humas", jurusan: "Ilmu Komunikasi" },
-  { id: 15, nama: "Ahmad F", instansi: "Universitas X", divisi: "Reskrim", jurusan: "Hukum" },
-  { id: 16, nama: "Dewi C", instansi: "Universitas Negeri Semarang", divisi: "Lantas", jurusan: "Hukum" },
-  { id: 17, nama: "Budi Santoso", instansi: "Universitas Diponegoro", divisi: "Subbid Tekinfo", jurusan: "Teknik Informatika" },
-  { id: 18, nama: "Siti Aminah", instansi: "Universitas Dian Nuswantoro", divisi: "Humas", jurusan: "Ilmu Komunikasi" },
-  { id: 19, nama: "Ahmad F", instansi: "Universitas X", divisi: "Reskrim", jurusan: "Hukum" },
-  { id: 20, nama: "Dewi C", instansi: "Universitas Negeri Semarang", divisi: "Lantas", jurusan: "Hukum" },
-];
+interface Props {
+  data: Mahasiswa[];
+  onDelete: (id: number) => void;
+}
 
 const PER_PAGE = 10;
 
-const TableMahasiswa = () => {
+const TableMahasiswa = ({ data, onDelete }: Props) => {
   const [page, setPage] = useState(1);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+
   const navigate = useNavigate();
 
-  const totalPages = Math.ceil(DATA.length / PER_PAGE);
+  // Filter hanya mahasiswa dengan status "diterima"
+  const filteredData = data.filter(
+    (item) => item.status?.toLowerCase() === "diterima"
+  );
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`http://127.0.0.1:8000/api/admin/mahasiswa/${deleteId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (res.ok) {
+        onDelete(deleteId);
+        toast.success("Data mahasiswa berhasil dihapus");
+      } else {
+        toast.error("Gagal menghapus data");
+      }
+    } catch (error) {
+      console.error("Gagal hapus:", error);
+      toast.error("Terjadi kesalahan");
+    } finally {
+      setDeleteId(null);
+      setOpenDialog(false);
+    }
+  };
+
+  const totalPages = Math.ceil(filteredData.length / PER_PAGE);
   const start = (page - 1) * PER_PAGE;
-  const currentData = DATA.slice(start, start + PER_PAGE);
+  const currentData = filteredData.slice(start, start + PER_PAGE);
 
   return (
     <div className="p-6 bg-white border rounded-xl">
@@ -83,67 +108,68 @@ const TableMahasiswa = () => {
         </TableHeader>
 
         <TableBody>
-          {currentData.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.nama}</TableCell>
-              <TableCell>{item.instansi}</TableCell>
-              <TableCell>{item.divisi}</TableCell>
-              <TableCell>{item.jurusan}</TableCell>
-
-              <TableCell className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate(`/admin/laporan/mhs/${item.id}`)}
-                >
-                  <Pencil size={14} className="mr-1" />
-                  Edit
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm" variant="destructive">
-                      <Trash2 size={14} />
-                    </Button>
-                  </AlertDialogTrigger>
-
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Yakin hapus data ini?</AlertDialogTitle>
-                    </AlertDialogHeader>
-
-                    <div className="flex justify-end gap-2">
-                      <AlertDialogCancel>Batal</AlertDialogCancel>
-                      <AlertDialogAction className="bg-red-600">
-                        Hapus
-                      </AlertDialogAction>
-                    </div>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </TableCell>
+          {currentData.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center">Tidak ada data mahasiswa</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            currentData.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.nama}</TableCell>
+                <TableCell>{item.universitas}</TableCell>
+                <TableCell>{item.divisi}</TableCell>
+                <TableCell>{item.jurusan}</TableCell>
+                <TableCell className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate(`/admin/laporan/mhs/${item.id}`)}
+                  >
+                    <Pencil size={14} className="mr-1" />
+                    Edit
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      setDeleteId(item.id);
+                      setOpenDialog(true);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
+
+      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Yakin hapus data ini?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2">
+            <AlertDialogCancel onClick={() => setOpenDialog(false)}>Batal</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-600" onClick={handleDelete}>Hapus</AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex justify-center mt-6">
         <Pagination>
           <PaginationContent>
             {Array.from({ length: totalPages }).map((_, i) => (
               <PaginationItem key={i}>
-                <PaginationLink
-                  isActive={page === i + 1}
-                  onClick={() => setPage(i + 1)}
-                >
+                <PaginationLink isActive={page === i + 1} onClick={() => setPage(i + 1)}>
                   {i + 1}
                 </PaginationLink>
               </PaginationItem>
             ))}
-
             <PaginationItem>
-              <PaginationLink
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              >
+              <PaginationLink onClick={() => setPage((p) => Math.min(p + 1, totalPages))}>
                 <ChevronRight size={16} />
               </PaginationLink>
             </PaginationItem>

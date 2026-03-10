@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProgresMagang extends Model
 {
+    protected $table = 'progres_magang';
+
     protected $fillable = [
         'user_id',
         'kegiatan',
         'dokumentasi',
+        'status', 
     ];
 
     public function user()

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Absensi from "./Components/Absensi";
 import Progres from "./Components/Progres";
 import Tugas from "./Components/Tugas";
@@ -8,7 +9,70 @@ type TabType = "absensi" | "progres" | "tugas";
 
 const UserMagangPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>("absensi");
+  const [status, setStatus] = useState<string | null>(null);
+  const navigate = useNavigate();
 
+  // 🔥 Ambil status dari backend
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const token = localStorage.getItem("auth_token");
+
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+
+        const result = await response.json();
+        console.log("PROFILE:", result);
+
+        if (response.ok && result.data) {
+          setStatus(result.data.status);
+        } else {
+          setStatus("unknown");
+        }
+      } catch (error) {
+        console.error("Error ambil status:", error);
+        setStatus("unknown");
+      }
+    };
+
+    fetchStatus();
+  }, [navigate]);
+
+  // 🔥 Loading dulu sebelum tahu status
+  if (status === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-gray-500">Memeriksa status magang...</p>
+      </div>
+    );
+  }
+
+  // 🔒 Kalau belum diterima → kunci halaman
+  if (status !== "diterima") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <h2 className="text-xl font-bold text-red-600">
+          Fitur Magang Belum Tersedia
+        </h2>
+        <p className="text-gray-500 mt-2 max-w-md">
+          Fitur Absensi, Progres, dan Tugas hanya dapat diakses setelah Anda
+          resmi <span className="font-semibold">diterima</span> sebagai peserta
+          magang.
+        </p>
+      </div>
+    );
+  }
+
+  // 🔥 Kalau sudah diterima baru tampilkan normal
   const renderContent = () => {
     switch (activeTab) {
       case "absensi":

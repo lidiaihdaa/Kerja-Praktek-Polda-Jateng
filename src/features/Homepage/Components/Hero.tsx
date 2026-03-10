@@ -1,80 +1,113 @@
-import { useState } from "react";
-interface KuotaMagang {
+import { useState, useEffect } from "react";
+
+interface Divisi {
   id: number;
   nama_divisi: string;
   sisa_kuota: number;
-  kebutuhan_skill: string;
 }
+
 const Hero = () => {
-  const [dataKuota, setDataKuota] = useState<KuotaMagang[]>([]);
-  const cekKuotaMagang = async () => {
+  const [open, setOpen] = useState(false);
+  const [divisi, setDivisi] = useState<Divisi[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchKuota = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/kuota-magang");
-      const result = await response.json();
-      setDataKuota(result.data);
+      setLoading(true);
+
+      const res = await fetch("http://127.0.0.1:8000/api/kuota-magang");
+      const data = await res.json();
+
+      if (data.status === "success") {
+        setDivisi(data.data);
+      }
+
+      setLoading(false);
     } catch (error) {
-      console.error("Fetch error:", error);
-      alert("Gagal terhubung ke server backend.");
+      console.error("Gagal mengambil kuota:", error);
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (open) {
+      fetchKuota();
+    }
+  }, [open]);
+
   return (
-    <section className="flex flex-col items-center justify-center h-[75vh] md:h-screen px-6 text-center text-white">
-      <div className="flex flex-col items-center justify-center w-full max-w-3xl">
-        <h1 className="mb-4 text-3xl font-bold leading-tight md:text-5xl">
-          SIMAGANG POLDA JATENG
-        </h1>
+    <>
+      <section className="flex flex-col items-center justify-center h-[75vh] md:h-screen px-6 text-center text-white">
+        <div className="flex flex-col items-center justify-center w-full max-w-3xl">
+          <h1 className="mb-4 text-3xl font-bold leading-tight md:text-5xl">
+            SIMAGANG POLDA JATENG
+          </h1>
 
-        <p className="mb-8 text-sm md:text-base">
-          Wujudkan potensi Anda Bersama Polda Jawa Tengah
-        </p>
+          <p className="mb-8 text-sm md:text-base">
+            Wujudkan potensi Anda Bersama Polda Jawa Tengah
+          </p>
 
-        <button
-          onClick={cekKuotaMagang}
-          className="px-6 py-3 text-sm transition rounded bg-biru hover:bg-birutua"
-        >
-          Lihat Kuota
-        </button>
-        {dataKuota.length > 0 && (
-          <div className="mt-8 bg-white text-black p-5 rounded-lg shadow-lg w-full text-left transition-all">
-            <h3 className="text-xl font-bold mb-4 border-b pb-2 text-gray-800">
-              Daftar Kebutuhan Divisi
-            </h3>
-            <ul className="space-y-3">
-              {dataKuota.map((item) => (
-                <li
-                  key={item.id}
-                  className="p-3 border rounded-md flex justify-between items-center bg-gray-50"
-                >
-                  <div>
-                    <p className="font-bold text-gray-800">
-                      {item.nama_divisi}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Dicari: {item.kebutuhan_skill}
-                    </p>
-                  </div>
-                  <div>
+          <button
+            onClick={() => setOpen(true)}
+            className="px-6 py-3 text-sm transition rounded bg-biru hover:bg-birutua"
+          >
+            Lihat Kuota
+          </button>
+        </div>
+      </section>
+
+      {/* POPUP KUOTA */}
+      {open && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto shadow-xl">
+
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">
+                Kuota Magang Polda Jateng
+              </h2>
+
+              <button
+                onClick={() => setOpen(false)}
+                className="text-red-500 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {loading ? (
+              <p className="text-center text-gray-500">Memuat data...</p>
+            ) : divisi.length === 0 ? (
+              <p className="text-center text-gray-500">
+                Data kuota belum tersedia
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {divisi.map((d) => (
+                  <div
+                    key={d.id}
+                    className="flex justify-between items-center border p-3 rounded"
+                  >
+                    <span className="font-medium">{d.nama_divisi}</span>
+
                     <span
-                      className={`px-3 py-1 rounded text-white text-sm font-semibold ${item.sisa_kuota > 0 ? "bg-green-500" : "bg-red-500"}`}
+                      className={`font-semibold ${
+                        d.sisa_kuota === 0
+                          ? "text-red-500"
+                          : "text-green-600"
+                      }`}
                     >
-                      {item.sisa_kuota > 0
-                        ? `Sisa: ${item.sisa_kuota}`
-                        : "Penuh"}
+                      {d.sisa_kuota === 0
+                        ? "Penuh"
+                        : `Sisa ${d.sisa_kuota}`}
                     </span>
                   </div>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => setDataKuota([])}
-              className="mt-4 text-sm text-red-500 hover:underline"
-            >
-              Tutup Daftar
-            </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      )}
+    </>
   );
 };
 

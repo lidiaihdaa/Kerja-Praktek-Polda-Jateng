@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Camera } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   onSuccess: () => void;
@@ -10,42 +10,129 @@ interface Props {
 const AbsenMasuk = ({ onSuccess, onBack }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("Menunggu wajah...");
+
   useEffect(() => {
+    let streamRef: MediaStream | null = null;
+    let interval: any;
+
     navigator.mediaDevices
       .getUserMedia({ video: true })
       .then((stream) => {
+        streamRef = stream;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+
+        // 🔥 AUTO SCAN SETIAP 2 DETIK
+        interval = setInterval(() => {
+          captureAndVerify();
+        }, 2000);
+      })
+      .catch(() => {
+        setStatus("❌ Kamera tidak dapat diakses");
       });
+
+    return () => {
+      if (streamRef) streamRef.getTracks().forEach((track) => track.stop());
+      if (interval) clearInterval(interval);
+    };
   }, []);
+
+  const captureAndVerify = async () => {
+    if (!videoRef.current || loading) return;
+
+    setLoading(true);
+
+    try {
+      const canvas = document.createElement("canvas");
+
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0);
+      }
+
+      const imageBase64 = canvas.toDataURL("image/jpeg").split(",")[1];
+
+      const token = localStorage.getItem("auth_token");
+
+      if (!token) {
+        setStatus("❌ Token tidak ditemukan");
+        return;
+      }
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/absensi/verify-face",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            image: imageBase64,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setStatus("✅ Wajah dikenali. Absensi berhasil.");
+
+        setTimeout(() => {
+          onSuccess();
+        }, 1000);
+      } else {
+        setStatus("❌ Wajah tidak cocok");
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus("⚠️ Server AI tidak aktif");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="text-center">
-      <h2 className="mb-4 text-lg font-semibold">Absen Masuk</h2>
 
-      <video
-        ref={videoRef}
-        autoPlay
-        className="mx-auto mb-4 border rounded-lg"
-      />
+      <h2 className="mb-4 text-lg font-semibold">
+        Absen Masuk (Face Recognition)
+      </h2>
+
+      <div className="relative mx-auto mb-4 overflow-hidden border rounded-lg w-fit">
+
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="max-w-full h-auto scale-x-[-1]"
+        />
+
+      </div>
+
+      <p className="mb-4 text-sm text-gray-600">{status}</p>
+
+      {loading && (
+        <Loader2 className="mx-auto animate-spin text-blue-600" />
+      )}
 
       <div className="flex justify-center gap-3">
-        <Button
-          className="text-white bg-abu"
-          onClick={() => {
-            alert("Foto berhasil diambil");
-            onSuccess();
-          }}
-        >
-          <Camera className="mr-2" size={16} />
-          Ambil Foto
-        </Button>
 
         <Button variant="outline" onClick={onBack}>
           Kembali
         </Button>
+
       </div>
+
     </div>
   );
 };

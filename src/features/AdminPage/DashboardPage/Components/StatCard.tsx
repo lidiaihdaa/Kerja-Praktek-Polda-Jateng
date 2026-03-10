@@ -1,68 +1,68 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ClipboardList, Users, Building, Award, Info, TrendingUp } from "lucide-react";
+import { ClipboardList, Users, Building, Award } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const stats = [
-  {
-    title: "Pendaftar Baru",
-    value: 100,
-    subtitle: "Sejak Minggu Lalu",
-    percentage: "13.47%",
-    icon: ClipboardList,
-  },
-  {
-    title: "Pemagang Aktif",
-    value: 50,
-    subtitle: "Sejak Minggu Lalu",
-    percentage: "13.47%",
-    icon: Users,
-  },
-  {
-    title: "Total Instansi Mitra",
-    value: 15,
-    subtitle: "Bulan Lalu",
-    percentage: "13.47%",
-    icon: Building,
-  },
-  {
-    title: "Rata - Rata Nilai Alumni",
-    value: 90,
-    subtitle: "",
-    percentage: "",
-    icon: Award,
-  },
-];
+export interface CardsData {
+  pendaftar: number;
+  aktif: number;
+  instansi: number;
+  nilai: number;
+}
 
-export const StatCard = () => {
+interface Props {
+  cards?: CardsData | null;
+}
+
+export const StatCard = ({ cards }: Props) => {
+  const navigate = useNavigate();
+
+  const data = [
+    {
+      title: "Pendaftar Baru",
+      value: cards?.pendaftar ?? 0,
+      icon: ClipboardList,
+      path: "/admin/pendaftar"
+    },
+    {
+      title: "Pemagang Aktif",
+      value: cards?.aktif ?? 0,
+      icon: Users,
+      path: "/admin/laporan/mhs"
+    },
+    {
+      title: "Total Instansi Mitra",
+      value: cards?.instansi ?? 0,
+      icon: Building,
+      path: "/admin/laporan/instansi-mitra"
+    },
+    {
+      title: "Rata - Rata Nilai Alumni",
+      value: cards?.nilai ?? 0,
+      icon: Award,
+      path: "/admin/laporan/hasil-magang"
+    }
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, index) => (
-        <Card key={index}>
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-start justify-between">
+      {data.map((item, index) => {
+        const Icon = item.icon;
+        return (
+          <Card
+            key={index}
+            onClick={() => navigate(item.path)}
+            className="cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95"
+          >
+            <CardContent className="p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <stat.icon size={16} className="text-abu" />
-                <p className="text-xs text-abu">{stat.title}</p>
+                <Icon size={16} className="text-gray-500"/>
+                <p className="text-sm text-gray-500">{item.title}</p>
               </div>
-              <Info size={14} className="cursor-pointer text-muted-foreground" />
-            </div>
-            <p className="text-3xl font-bold">{stat.value}</p>
-            {stat.subtitle && (
-              <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
-            )}
-            <div className="flex items-center justify-between pt-2 border-t">
-              <span className="text-xs font-medium cursor-pointer text-abu hover:underline">
-                Detail
-              </span>
-              {stat.percentage && (
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <span>{stat.percentage}</span>
-                  <TrendingUp size={12} />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              <p className="text-3xl font-bold">{item.value}</p>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

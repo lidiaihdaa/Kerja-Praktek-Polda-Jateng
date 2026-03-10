@@ -5,14 +5,15 @@ import { Input } from "@/components/ui/input";
 import {
   UserPlus,
   AlertTriangle,
-  Info,
   Search,
   Eye,
 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Notifikasi = {
   id: number;
-  type: "pendaftar" | "peringatan" | "info";
+  type: "pendaftar" | "peringatan";
   title: string;
   description: string;
   time: string;
@@ -37,14 +38,6 @@ const DATA: Notifikasi[] = [
     actionLabel: "Tindak Lanjut",
   },
   {
-    id: 3,
-    type: "info",
-    title: "Info Sistem",
-    description: "Pembaruan sistem telah berhasil dilakukan. Semua fitur berjalan normal.",
-    time: "3 jam yang lalu",
-    actionLabel: "Selengkapnya",
-  },
-  {
     id: 4,
     type: "pendaftar",
     title: "Pendaftar Baru",
@@ -59,14 +52,6 @@ const DATA: Notifikasi[] = [
     description: "Laporan bulanan belum diselesaikan. Batas waktu pengumpulan: 28 Februari 2025.",
     time: "1 hari yang lalu",
     actionLabel: "Tindak Lanjut",
-  },
-  {
-    id: 6,
-    type: "info",
-    title: "Info Sistem",
-    description: "Jadwal maintenance server: Minggu, 2 Maret 2025 pukul 00:00 - 04:00 WIB.",
-    time: "1 hari yang lalu",
-    actionLabel: "Selengkapnya",
   },
   {
     id: 7,
@@ -101,18 +86,20 @@ const typeConfig = {
     icon: AlertTriangle,
     buttonClass: "bg-yellow-600 hover:bg-yellow-700 text-white",
   },
-  info: {
-    bgColor: "bg-blue-50 border-blue-200",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    icon: Info,
-    buttonClass: "bg-blue-600 hover:bg-blue-700 text-white",
-  },
 };
 
 const NotifCard = ({ notif }: { notif: Notifikasi }) => {
   const config = typeConfig[notif.type];
   const Icon = config.icon;
+  const navigate = useNavigate();
+
+  const handleAction = () => {
+    if (notif.type === "pendaftar") {
+      navigate("/admin/pendaftar");
+    } else if (notif.type === "peringatan") {
+      navigate("/admin/penilaian");
+    }
+  };
 
   return (
     <Card className={`border ${config.bgColor}`}>
@@ -130,7 +117,11 @@ const NotifCard = ({ notif }: { notif: Notifikasi }) => {
             <p className="text-sm text-gray-600">{notif.description}</p>
           </div>
 
-          <Button size="sm" className={`gap-2 shrink-0 ${config.buttonClass}`}>
+          <Button
+            size="sm"
+            className={`gap-2 shrink-0 ${config.buttonClass}`}
+            onClick={handleAction}
+          >
             <Eye size={14} />
             {notif.actionLabel}
           </Button>
@@ -141,41 +132,58 @@ const NotifCard = ({ notif }: { notif: Notifikasi }) => {
 };
 
 const NotifikasiContent = () => {
-  const pendaftarNotifs = DATA.filter((n) => n.type === "pendaftar");
-  const peringatanNotifs = DATA.filter((n) => n.type === "peringatan");
-  const infoNotifs = DATA.filter((n) => n.type === "info");
+  const [search, setSearch] = useState("");
+
+  const filtered = DATA.filter(
+    (n) =>
+      n.title.toLowerCase().includes(search.toLowerCase()) ||
+      n.description.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const pendaftarNotifs = filtered.filter((n) => n.type === "pendaftar");
+  const peringatanNotifs = filtered.filter((n) => n.type === "peringatan");
 
   return (
     <div className="space-y-4">
-      {/* Search */}
       <div className="relative max-w-sm">
         <Search size={16} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Cari notifikasi..." className="pl-9" />
+        <Input
+          placeholder="Cari notifikasi..."
+          className="pl-9"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <Tabs defaultValue="semua" className="w-full">
         <TabsList>
           <TabsTrigger value="semua">Semua</TabsTrigger>
           <TabsTrigger value="penting">Penting / Urgent</TabsTrigger>
-          <TabsTrigger value="info">Info</TabsTrigger>
+          <TabsTrigger value="pendaftar">Pendaftar Baru</TabsTrigger>
         </TabsList>
 
         <TabsContent value="semua" className="space-y-3 mt-4">
-          {DATA.map((notif) => (
-            <NotifCard key={notif.id} notif={notif} />
-          ))}
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Tidak ada notifikasi ditemukan.</p>
+          ) : (
+            filtered.map((notif) => <NotifCard key={notif.id} notif={notif} />)
+          )}
         </TabsContent>
 
         <TabsContent value="penting" className="space-y-3 mt-4">
-          {[...pendaftarNotifs, ...peringatanNotifs].map((notif) => (
-            <NotifCard key={notif.id} notif={notif} />
-          ))}
+          {peringatanNotifs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Tidak ada notifikasi peringatan.</p>
+          ) : (
+            peringatanNotifs.map((notif) => <NotifCard key={notif.id} notif={notif} />)
+          )}
         </TabsContent>
 
-        <TabsContent value="info" className="space-y-3 mt-4">
-          {infoNotifs.map((notif) => (
-            <NotifCard key={notif.id} notif={notif} />
-          ))}
+        <TabsContent value="pendaftar" className="space-y-3 mt-4">
+          {pendaftarNotifs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Tidak ada notifikasi pendaftar baru.</p>
+          ) : (
+            pendaftarNotifs.map((notif) => <NotifCard key={notif.id} notif={notif} />)
+          )}
         </TabsContent>
       </Tabs>
     </div>

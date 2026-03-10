@@ -45,7 +45,7 @@ const Sidebar = () => {
       </div>
 
       <nav className="px-3 space-y-1">
-        <NavLink to="/admin/dashboard-main" end className={navClass}>
+        <NavLink to="/admin/dashboard" end className={navClass}>
           <LayoutDashboard size={18} />
           Overview
         </NavLink>

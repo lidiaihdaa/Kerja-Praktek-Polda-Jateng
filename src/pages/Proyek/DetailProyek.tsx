@@ -1,189 +1,455 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Building2, MapPin, Calendar, Wrench, ArrowLeft, CheckCircle2 } from "lucide-react";
+import {
+  Building2,
+  MapPin,
+  Calendar,
+  Wrench,
+  ArrowLeft,
+  CheckCircle2,
+  Users,
+  Clock
+} from "lucide-react";
 
-// 1. IMPORT FOTO (Foto asli untuk 5 proyek pertama)
+// ================= IMPORT GAMBAR =================
+
+// TIK
 import seoImg from "../../assets/img/SEO.jpg";
 import webdevImg from "../../assets/img/webdev.jpg";
 import integrationImg from "../../assets/img/s.integ.jpg";
 import uiuxImg from "../../assets/img/design.jpg";
 import mobileappImg from "../../assets/img/mobileapp.jpg";
+import cyber from "../../assets/img/cyber.png";
+import dashboarduser from "../../assets/img/dashboard user.png";
 
-// 2. DATA LENGKAP PROYEK (Full 20 Proyek dengan Deskripsi & Tools)
+// HUMAS
+import sosmed from "../../assets/img/sosmed.png";
+import videocampaign from "../../assets/img/videocampaign.png";
+import desaingrafis from "../../assets/img/desaingrafis.png";
+import jurnalis from "../../assets/img/jurnalis.png";
+import manajemenkonten from "../../assets/img/manajemenkonten.png";
+
+// SDM
+import analisisbebankerja from "../../assets/img/bebankerja.png";
+import arsippersonel from "../../assets/img/arsippersonel.png";
+import indikatorkinerja from "../../assets/img/indikatorkinerja.png";
+import piskologis from "../../assets/img/psikologisanggota.png";
+
+// BIDKUM
+import penyuluhanhukum from "../../assets/img/penyuluhanhukum.png";
+import kajianhukum from "../../assets/img/kajianhukum.png";
+import perjanjian from "../../assets/img/perjanjian.png";
+import perkara from "../../assets/img/putusanperkara.png";
+
+import digitalforensik from "../../assets/img/digitalforensik.png";
+import dnaforensik from "../../assets/img/dnaforensik.png";
+import analisiskeuangan from "../../assets/img/analisiskeuangan.png";
+
+// ================= DATA PROJECT =================
+
 const showcaseData = [
-  // --- Bidang TIK ---
-  { id: 1, title: "Search Engine Optimization (SEO)", kategori: "Bid TIK", desc: "Proyek optimalisasi situs web resmi agar lebih mudah ditemukan oleh masyarakat melalui mesin pencari. Fokus utama meliputi riset kata kunci strategis, perbaikan struktur URL, serta peningkatan kecepatan pemuatan halaman (Core Web Vitals) untuk menembus halaman pertama Google.", client: "Polda Jateng", date: "2026", img: seoImg, tools: ["Google Analytics", "Ahrefs", "Lighthouse", "WordPress"] },
-  { id: 2, title: "Web Development (SIMAGANG)", kategori: "Bid TIK", desc: "Membangun platform portal web terintegrasi untuk pendaftaran dan monitoring peserta magang. Sistem ini memangkas waktu birokrasi pendaftaran hingga 70% dan memudahkan pembimbing dalam menilai kinerja peserta secara digital.", client: "Polda Jateng", date: "2026", img: webdevImg, tools: ["React JS", "Tailwind CSS", "Laravel", "MySQL"] },
-  { id: 3, title: "System Integration", kategori: "Bid TIK", desc: "Menghubungkan berbagai pangkalan data agar dapat berkomunikasi secara otomatis dan efisien. Mengurangi redudansi data antar satuan kerja.", client: "Polda Jateng", date: "2026", img: integrationImg, tools: ["REST API", "Postman", "Node.js"] },
-  { id: 4, title: "UI / UX Design", kategori: "Bid TIK", desc: "Perancangan antarmuka yang intuitif untuk seluruh aplikasi digital milik Polda Jateng berdasarkan riset pengalaman pengguna.", client: "Polda Jateng", date: "2026", img: uiuxImg, tools: ["Figma", "Miro", "Whimsical"] },
-  { id: 5, title: "Mobile App Development", kategori: "Bid TIK", desc: "Pengembangan aplikasi Android dan iOS untuk sarana pelaporan darurat real-time yang langsung terhubung ke command center.", client: "Polda Jateng", date: "2026", img: mobileappImg, tools: ["Flutter", "Firebase", "Dart"] },
-  { id: 6, title: "Audit Keamanan Jaringan (Cybersecurity)", kategori: "Bid TIK", desc: "Melakukan penetration testing dan penguatan keamanan sistem jaringan dari potensi ancaman siber eksternal.", client: "Polda Jateng", date: "2026", tools: ["Wireshark", "Kali Linux", "Nmap"] },
-  { id: 7, title: "Pembuatan Executive Dashboard Data", kategori: "Bid TIK", desc: "Visualisasi data analitik terpusat untuk membantu proses pengambilan keputusan strategis oleh pimpinan kepolisian.", client: "Polda Jateng", date: "2026", tools: ["Tableau", "PowerBI", "Excel"] },
-  
-  // --- Bidang Humas ---
-  { id: 8, title: "Social Media Campaign", kategori: "Bid Humas", desc: "Perancangan strategi dan konten untuk kampanye digital di media sosial resmi kepolisian guna menekan angka hoaks di masyarakat.", client: "Polda Jateng", date: "2026", tools: ["Instagram", "TikTok", "Facebook", "LinkedIn", "WhatsApp"] },
-  { id: 9, title: "Video Company Profile", kategori: "Bid Humas", desc: "Pembuatan video profil sinematik yang menampilkan tugas, fungsi, dan fasilitas dari berbagai satuan kerja di lingkungan Polda Jateng.", client: "Polda Jateng", date: "2026", tools: ["Premiere Pro", "After Effects", "Kamera Mirrorless"] },
-  { id: 10, title: "Desain Grafis Edukasi Masyarakat", kategori: "Bid Humas", desc: "Pembuatan infografis kreatif dan mudah dipahami untuk mengedukasi masyarakat terkait alur layanan kepolisian (SKCK, SIM, dll).", client: "Polda Jateng", date: "2026", tools: ["Illustrator", "Photoshop", "Canva"] },
-  { id: 11, title: "Peliputan & Jurnalistik Kepolisian", kategori: "Bid Humas", desc: "Mendokumentasikan kegiatan utama Kapolda dan menulis press release untuk disalurkan ke berbagai media massa nasional.", client: "Polda Jateng", date: "2026", tools: ["Microsoft Word", "Kamera DSLR", "Voice Recorder"] },
-  { id: 12, title: "Manajemen Konten Website Resmi", kategori: "Bid Humas", desc: "Mengelola pembaruan berita, pengumuman, dan informasi publik di portal website Tribrata News agar selalu aktual.", client: "Polda Jateng", date: "2026", tools: ["WordPress CMS", "SEO Tools", "Grammarly"] },
-  
-  // --- Biro SDM ---
-  { id: 13, title: "Analisis Beban Kerja Personel", kategori: "Biro SDM", desc: "Mengevaluasi dan memetakan beban kerja anggota Polri untuk optimalisasi penempatan tugas dan usulan mutasi jabatan.", client: "Polda Jateng", date: "2026", tools: ["SPSS", "Microsoft Excel", "Google Forms"] },
-  { id: 14, title: "Digitalisasi Arsip Personel", kategori: "Biro SDM", desc: "Mengalihmediakan ratusan data fisik personel ke dalam sistem pengarsipan digital yang terintegrasi untuk mencegah kehilangan dokumen.", client: "Polda Jateng", date: "2026", tools: ["Scanner HD", "Google Drive", "SI-SDM"] },
-  { id: 15, title: "Perumusan Indikator Kinerja Personel", kategori: "Biro SDM", desc: "Membantu bagian birokrasi merancang parameter penilaian kinerja bulanan untuk anggota Polri dan Pegawai Negeri Sipil (PNS).", client: "Polda Jateng", date: "2026", tools: ["Excel", "Trello", "KPI Dashboard"] },
-  { id: 16, title: "Program Dukungan Psikologis Anggota", kategori: "Biro SDM", desc: "Membantu Bagian Psikologi dalam pelaksanaan tes mental kejiwaan dan program pendampingan stres bagi anggota lapangan.", client: "Polda Jateng", date: "2026", tools: ["Alat Tes Psikologi", "Google Forms", "Zoom"] },
-  
-  // --- Bidang Hukum / Bidkum ---
-  { id: 17, title: "Penyuluhan Hukum Digital", kategori: "Bidkum", desc: "Pembuatan materi presentasi dan modul digital interaktif untuk penyuluhan kesadaran hukum kepada kalangan pelajar dan masyarakat umum.", client: "Polda Jateng", date: "2026", tools: ["Canva", "PowerPoint", "Zoom"] },
-  { id: 18, title: "Kajian Hukum Peraturan Daerah", kategori: "Bidkum", desc: "Melakukan riset dan analisis sinkronisasi peraturan daerah (Perda) terbaru dengan undang-undang kepolisian yang berlaku.", client: "Polda Jateng", date: "2026", tools: ["JDIH", "Microsoft Word", "Mendeley"] },
-  { id: 19, title: "Penyusunan Draft MoU & Perjanjian", kategori: "Bidkum", desc: "Membantu penasihat hukum menyusun rancangan nota kesepahaman (MoU) antara instansi kepolisian dan pihak swasta/universitas.", client: "Polda Jateng", date: "2026", tools: ["Microsoft Word", "Google Docs"] },
-  { id: 20, title: "Klasifikasi Putusan Perkara", kategori: "Bidkum", desc: "Menata, menelaah, dan mengarsipkan riwayat putusan perkara peradilan umum sebagai bahan yurisprudensi dan referensi hukum internal.", client: "Polda Jateng", date: "2026", tools: ["SIPP", "Excel", "Database Hukum"] },
+
+{
+id:1,
+title:"Search Engine Optimization (SEO)",
+kategori:"Satker TIK",
+img:seoImg,
+desc:"Optimalisasi website resmi kepolisian agar mudah ditemukan masyarakat melalui mesin pencari.",
+tools:["Google Analytics","Ahrefs","WordPress"]
+},
+
+{
+id:2,
+title:"Web Development (SIMAGANG)",
+kategori:"Satker TIK",
+img:webdevImg,
+desc:"Pengembangan sistem pendaftaran dan monitoring peserta magang.",
+tools:["React","Laravel","MySQL"]
+},
+
+{
+id:3,
+title:"System Integration",
+kategori:"Satker TIK",
+img:integrationImg,
+desc:"Integrasi berbagai sistem internal untuk meningkatkan efisiensi data.",
+tools:["REST API","NodeJS"]
+},
+
+{
+id:4,
+title:"UI / UX Design",
+kategori:"Satker TIK",
+img:uiuxImg,
+desc:"Perancangan pengalaman pengguna untuk aplikasi internal.",
+tools:["Figma"]
+},
+
+{
+id:5,
+title:"Mobile App Development",
+kategori:"Satker TIK",
+img:mobileappImg,
+desc:"Pengembangan aplikasi mobile untuk layanan kepolisian.",
+tools:["Flutter","Firebase"]
+},
+
+{
+id:6,
+title:"Audit Keamanan Jaringan",
+kategori:"Satker DITSIBER",
+img:cyber,
+desc:"Analisis keamanan jaringan untuk mencegah serangan siber.",
+tools:["Kali Linux","Wireshark"]
+},
+
+{
+id:7,
+title:"Executive Dashboard Data",
+kategori:"Satker TIK",
+img:dashboarduser,
+desc:"Visualisasi data strategis untuk pimpinan.",
+tools:["Power BI","Excel"]
+},
+
+{
+id:8,
+title:"Social Media Campaign",
+kategori:"Satker HUMAS",
+img:sosmed,
+desc:"Strategi kampanye media sosial untuk edukasi masyarakat.",
+tools:["Instagram","TikTok"]
+},
+
+{
+id:9,
+title:"Video Company Profile",
+kategori:"Satker HUMAS",
+img:videocampaign,
+desc:"Produksi video profil institusi kepolisian.",
+tools:["Premiere Pro","After Effects"]
+},
+
+{
+id:10,
+title:"Desain Grafis Edukasi Masyarakat",
+kategori:"Satker HUMAS",
+img:desaingrafis,
+desc:"Infografis edukasi keamanan dan hukum.",
+tools:["Illustrator","Photoshop"]
+},
+
+{
+id:11,
+title:"Peliputan & Jurnalistik Kepolisian",
+kategori:"Satker HUMAS",
+img:jurnalis,
+desc:"Dokumentasi kegiatan kepolisian.",
+tools:["DSLR","WordPress"]
+},
+
+{
+id:12,
+title:"Manajemen Konten Website Resmi",
+kategori:"Satker HUMAS",
+img:manajemenkonten,
+desc:"Pengelolaan berita dan konten website resmi.",
+tools:["CMS","SEO Tools"]
+},
+
+{
+id:13,
+title:"Analisis Beban Kerja Personel",
+kategori:"Satker SDM",
+img:analisisbebankerja,
+desc:"Evaluasi distribusi kerja personel kepolisian.",
+tools:["Excel","SPSS"]
+},
+
+{
+id:14,
+title:"Digitalisasi Arsip Personel",
+kategori:"Satker SDM",
+img:arsippersonel,
+desc:"Konversi arsip fisik menjadi digital.",
+tools:["Scanner","Drive"]
+},
+
+{
+id:15,
+title:"Perumusan Indikator Kinerja",
+kategori:"Satker SDM",
+img:indikatorkinerja,
+desc:"Pengembangan KPI untuk personel.",
+tools:["Excel"]
+},
+
+{
+id:16,
+title:"Program Dukungan Psikologis",
+kategori:"Satker SDM",
+img:piskologis,
+desc:"Pendampingan psikologi bagi anggota.",
+tools:["Psikotes"]
+},
+
+{
+id:17,
+title:"Penyuluhan Hukum Digital",
+kategori:"Satker BIDKUM",
+img:penyuluhanhukum,
+desc:"Edukasi hukum melalui media digital.",
+tools:["Canva","PowerPoint"]
+},
+
+{
+id:18,
+title:"Kajian Hukum Peraturan Daerah",
+kategori:"Satker BIDKUM",
+img:kajianhukum,
+desc:"Analisis regulasi daerah.",
+tools:["Word"]
+},
+
+{
+id:19,
+title:"Penyusunan Draft MoU",
+kategori:"Satker BIDKUM",
+img:perjanjian,
+desc:"Penyusunan dokumen kerja sama.",
+tools:["Docs"]
+},
+
+{
+id:20,
+title:"Klasifikasi Putusan Perkara",
+kategori:"Satker BIDKUM",
+img:perkara,
+desc:"Pengelompokan putusan perkara hukum.",
+tools:["Database Hukum"]
+},
+
+{
+id:21,
+title:"Analisis Digital Forensik",
+kategori:"Satker LABFOR",
+img: digitalforensik,
+desc:"Analisis barang bukti digital.",
+tools:["Autopsy","FTK"]
+},
+
+{
+id:22,
+title:"Analisis DNA Forensik",
+kategori:"Satker LABFOR",
+img:dnaforensik,
+desc:"Analisis biologis barang bukti.",
+tools:["Lab Tools"]
+},
+
+{
+id:23,
+title:"Analisis Data Kriminalitas",
+kategori:"Satker DITRESKRIMUM",
+img:"https://dummyimage.com/1200x600",
+desc:"Analisis pola kejahatan.",
+tools:["Excel"]
+},
+
+{
+id:24,
+title:"Investigasi Kejahatan Konvensional",
+kategori:"Satker DITRESKRIMUM",
+img:"https://dummyimage.com/1200x600",
+desc:"Investigasi kasus kriminal umum.",
+tools:["Database Kepolisian"]
+},
+
+{
+id:25,
+title:"Investigasi Korupsi",
+kategori:"Satker DITRESKRIMSUS",
+img:"https://dummyimage.com/1200x600",
+desc:"Investigasi tindak pidana korupsi.",
+tools:["Audit Tools"]
+},
+
+{
+id:26,
+title:"Analisis Kejahatan Lingkungan",
+kategori:"Satker DITRESKRIMSUS",
+img:"https://dummyimage.com/1200x600",
+desc:"Analisis kejahatan lingkungan.",
+tools:["GIS"]
+},
+
+{
+id:27,
+title:"Sistem Monitoring Anggaran",
+kategori:"Satker KEU",
+img:"https://dummyimage.com/1200x600",
+desc:"Monitoring penggunaan anggaran.",
+tools:["Excel"]
+},
+
+{
+id:28,
+title:"Analisis Laporan Keuangan",
+kategori:"Satker KEU",
+img: analisiskeuangan,
+desc:"Analisis laporan keuangan institusi.",
+tools:["Akuntansi"]
+}
+
 ];
 
-// 3. KAMUS KEPANJANGAN DIVISI
-const divisiFullName: Record<string, string> = {
-  "Bid TIK": "Bidang Teknologi Informasi dan Komunikasi",
-  "Bid Humas": "Bidang Hubungan Masyarakat",
-  "Biro SDM": "Biro Sumber Daya Manusia",
-  "Bidkum": "Bidang Hukum"
-};
+// ================= COMPONENT =================
 
 const DetailProyek = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
 
-  const project = showcaseData.find((item) => item.id === Number(id));
+const { id } = useParams();
+const navigate = useNavigate();
 
-  if (!project) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center bg-slate-50">
-        <h2 className="mb-4 text-3xl font-bold text-slate-800">Proyek Tidak Ditemukan</h2>
-        <button 
-          onClick={() => navigate(-1)} 
-          className="px-6 py-2 text-white transition rounded-lg bg-biru hover:opacity-90"
-        >
-          Kembali ke Daftar Proyek
-        </button>
-      </div>
-    );
-  }
+const project = showcaseData.find(item => item.id === Number(id));
 
-  // Menyiapkan daftar tools fallback jika seandainya data kosong
-  const toolsList = project.tools || ["Microsoft Office", "Trello"];
+if(!project){
 
-  return (
-    <section className="py-20 min-h-screen bg-slate-50">
-      <div className="container px-4 mx-auto max-w-5xl">
-        
-        <button 
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-8 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900 group"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          Kembali ke Daftar Proyek
-        </button>
+return(
 
-        <div className="overflow-hidden bg-white border border-slate-100 shadow-xl rounded-3xl">
-          
-          <div className="w-full h-64 md:h-96 bg-slate-200 relative group overflow-hidden">
-            <img 
-              // Menyesuaikan gambar: jika project.img ada pakai itu, jika tidak buat otomatis dari judul
-              src={project.img || `https://dummyimage.com/1200x600/e5e7eb/9ca3af&text=${project.title.replace(/ /g, '+')}`} 
-              alt={project.title}
-              className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-          </div>
+<div className="flex flex-col items-center justify-center min-h-[60vh]">
 
-          <div className="p-8 md:p-12">
-            <div className="mb-8">
-              <span className="inline-block px-4 py-1.5 mb-4 text-xs font-bold text-white rounded-lg bg-biru uppercase tracking-wider shadow-sm">
-                {project.kategori}
-              </span>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">
-                {project.title}
-              </h1>
-            </div>
+<h2 className="text-3xl font-bold mb-4">
+Proyek Tidak Ditemukan
+</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-16 mt-10">
-              
-              <div className="md:col-span-2">
-                <h3 className="mb-4 text-2xl font-bold text-slate-800 flex items-center gap-2">
-                  Ringkasan Proyek
-                </h3>
-                <p className="leading-relaxed text-slate-600 text-lg mb-8 text-justify">
-                  {project.desc}
-                </p>
+<button
+onClick={()=>navigate(-1)}
+className="px-6 py-2 bg-biru text-white rounded"
+>
+Kembali
+</button>
 
-                <h3 className="mb-4 text-xl font-bold text-slate-800 mt-10">Fokus Utama</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3 text-slate-600">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                    <span>Meningkatkan efisiensi dan transparansi operasional melalui inovasi mahasiswa magang.</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-slate-600">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                    <span>Menerapkan standar dan keterampilan akademik ke dalam lingkungan instansi pemerintahan.</span>
-                  </li>
-                </ul>
-              </div>
+</div>
 
-              <div className="md:col-span-1 space-y-8">
-                
-                <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm">
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">Informasi Detail</h4>
-                  
-                  <div className="space-y-4">
-                    <div className="flex gap-3 text-slate-700">
-                      <Building2 className="w-5 h-5 text-biru shrink-0" />
-                      <div>
-                        <p className="text-xs text-slate-400 font-semibold mb-0.5">Instansi</p>
-                        <p className="font-bold text-sm">{project.client}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-3 text-slate-700">
-                      <MapPin className="w-5 h-5 text-biru shrink-0" />
-                      <div>
-                        <p className="text-xs text-slate-400 font-semibold mb-0.5">Divisi / Satker</p>
-                        <p className="font-bold text-sm leading-snug">{divisiFullName[project.kategori] || project.kategori}</p>
-                      </div>
-                    </div>
+);
 
-                    <div className="flex gap-3 text-slate-700">
-                      <Calendar className="w-5 h-5 text-biru shrink-0" />
-                      <div>
-                        <p className="text-xs text-slate-400 font-semibold mb-0.5">Tahun Pelaksanaan</p>
-                        <p className="font-bold text-sm">{project.date}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+}
 
-                <div>
-                  <h4 className="flex items-center gap-2 text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">
-                    <Wrench className="w-4 h-4 text-slate-500" />
-                    Tools & Teknologi
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {toolsList.map((tool, index) => (
-                      <span 
-                        key={index} 
-                        className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded-lg"
-                      >
-                        {tool}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+return(
 
-              </div>
-            </div>
+<section className="py-20 bg-slate-50 min-h-screen">
 
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+<div className="container mx-auto max-w-5xl px-4">
+
+<button
+onClick={()=>navigate(-1)}
+className="flex items-center gap-2 mb-8 text-gray-500"
+>
+<ArrowLeft size={16}/> Kembali
+</button>
+
+<div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+
+<img
+src={project.img}
+alt={project.title}
+className="w-full h-96 object-cover"
+/>
+
+<div className="p-10">
+
+<span className="bg-biru text-white px-4 py-1 rounded-lg text-xs font-bold">
+{project.kategori}
+</span>
+
+<h1 className="text-4xl font-bold mt-4 mb-6">
+{project.title}
+</h1>
+
+<p className="text-gray-600 mb-10">
+{project.desc}
+</p>
+
+<div className="grid md:grid-cols-2 gap-8">
+
+<div className="space-y-4">
+
+<div className="flex gap-2 items-center">
+<Building2 size={18}/> Polda Jawa Tengah
+</div>
+
+<div className="flex gap-2 items-center">
+<MapPin size={18}/> Semarang
+</div>
+
+<div className="flex gap-2 items-center">
+<Calendar size={18}/> 2026
+</div>
+
+<div className="flex gap-2 items-center">
+<Clock size={18}/> Durasi: 3 Bulan
+</div>
+
+<div className="flex gap-2 items-center">
+<Users size={18}/> Individu / Kelompok
+</div>
+
+</div>
+
+<div>
+
+<h3 className="font-bold mb-3 flex items-center gap-2">
+<Wrench size={16}/> Tools & Teknologi
+</h3>
+
+<div className="flex flex-wrap gap-2">
+
+{project.tools.map((tool,index)=>(
+<span
+key={index}
+className="px-3 py-1 text-sm bg-gray-100 rounded-lg"
+>
+{tool}
+</span>
+))}
+
+</div>
+
+</div>
+
+</div>
+
+<div className="mt-10">
+
+<h3 className="text-xl font-bold mb-4">
+Fokus Utama
+</h3>
+
+<ul className="space-y-3">
+
+<li className="flex gap-3">
+<CheckCircle2 className="text-green-500"/>
+Memberikan pengalaman kerja nyata bagi mahasiswa.
+</li>
+
+<li className="flex gap-3">
+<CheckCircle2 className="text-green-500"/>
+Meningkatkan inovasi teknologi di lingkungan kepolisian.
+</li>
+
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+);
+
 };
 
 export default DetailProyek;
